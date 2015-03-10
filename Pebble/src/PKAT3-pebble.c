@@ -1,16 +1,5 @@
 #include <pebble.h>
 
-#define KEY_CHOICE      0
-#define CHOICE_ROCK     0
-#define CHOICE_PAPER    1
-#define CHOICE_SCISSORS 2
-#define CHOICE_WAITING  3
-
-#define KEY_RESULT  1
-#define RESULT_LOSE 0
-#define RESULT_WIN  1
-#define RESULT_TIE  2
-
 static Window *s_main_window;
 static BitmapLayer *s_choice_layer;
 static GBitmap *s_choice_bitmap;
@@ -26,54 +15,6 @@ static void timer_handler(void *context) {
   layer_set_hidden(text_layer_get_layer(s_result_layer), true);
 
   s_choice = CHOICE_WAITING;
-}
-
-static void received_handler(DictionaryIterator *iter, void *context) {
-  Tuple *t = dict_read_first(iter);
-
-  while(t != NULL) {
-    if(t->key == KEY_RESULT) {
-      // Display result to player
-      layer_set_hidden(menu_layer_get_layer(s_choice_menu), true);
-      layer_set_hidden(text_layer_get_layer(s_result_layer), false);
-
-      // Remember how many games have been played
-      s_game_counter++;
-
-      switch(t->value->int32) {
-        case RESULT_WIN:
-          // Remember how many wins in this session
-          s_win_counter++;
-
-          static char s_win_buffer[32];
-          snprintf(s_win_buffer, sizeof(s_win_buffer), "You win! (%d of %d)", s_win_counter, s_game_counter);
-          text_layer_set_text(s_result_layer, s_win_buffer);
-          break;
-        case RESULT_LOSE:
-          text_layer_set_text(s_result_layer, "You lose!");
-          break;
-        case RESULT_TIE:
-          text_layer_set_text(s_result_layer, "It's a tie!");
-          break;
-      }
-
-      // Display for 5 seconds
-      app_timer_register(5000, timer_handler, NULL);
-
-      // Go back to low-power mode
-      app_comm_set_sniff_interval(SNIFF_INTERVAL_NORMAL);
-    }
-
-    // Finally
-    t = dict_read_next(iter);
-  }
-}
-
-static void send(int key, int msg) {
-  DictionaryIterator *iter;
-  app_message_outbox_begin(&iter);
-  dict_write_int(iter, key, &msg, sizeof(int), true);
-  app_message_outbox_send();
 }
 
 static void draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *context) {
@@ -141,11 +82,7 @@ static void select_click_callback(struct MenuLayer *menu_layer, MenuIndex *cell_
     }
     
     // Lock in choice
-    send(KEY_CHOICE, s_choice);
     menu_layer_reload_data(s_choice_menu);
-
-    // Prepare for result
-    app_comm_set_sniff_interval(SNIFF_INTERVAL_REDUCED);
   }
 }
 
@@ -193,9 +130,6 @@ static void init(void) {
     .unload = main_window_unload,
   });
   window_stack_push(s_main_window, true);
-
-  app_message_register_inbox_received(received_handler);
-  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 }
 
 static void deinit(void) {
