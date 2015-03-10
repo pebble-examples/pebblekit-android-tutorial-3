@@ -28,10 +28,6 @@ import java.util.UUID;
 
 public class MainActivity extends Activity {
 
-    private static final UUID APP_UUID = UUID.fromString("af17efe7-2141-4eb2-b62a-19fc1b595595");
-
-    private PebbleKit.PebbleDataReceiver mDataReceiver;
-
     private ImageView mChoiceView;
     private TextView mInstructionView;
     private Button mRockButton;
@@ -97,30 +93,6 @@ public class MainActivity extends Activity {
         mWinCounter = 0;
         mGameCounter = 0;
         updateUI();
-
-        // Register to get updates from Pebble
-        if(mDataReceiver == null) {
-            mDataReceiver = new PebbleKit.PebbleDataReceiver(APP_UUID) {
-
-                @Override
-                public void receiveData(Context context, int transactionId, PebbleDictionary dict) {
-                    // Always ACK
-                    PebbleKit.sendAckToPebble(context, transactionId);
-
-                    // Was a choice received from player 2?
-                    if(dict.getInteger(Keys.KEY_CHOICE) != null) {
-                        mP2Choice = dict.getInteger(Keys.KEY_CHOICE).intValue();
-
-                        if(mChoice != Keys.CHOICE_WAITING) {
-                            // A match can be played!
-                            doMatch();
-                        }
-                    }
-                }
-
-            };
-            PebbleKit.registerReceivedDataHandler(getApplicationContext(), mDataReceiver);
-        }
     }
 
     /**
@@ -141,23 +113,18 @@ public class MainActivity extends Activity {
         // Remember how many games in this session
         mGameCounter++;
 
-        PebbleDictionary resultDict = new PebbleDictionary();
-
         switch (mChoice) {
             case Keys.CHOICE_ROCK:
                 switch(mP2Choice) {
                     case Keys.CHOICE_ROCK:
                         mInstructionView.setText("It's a tie!");
-                        resultDict.addInt32(Keys.KEY_RESULT, Keys.RESULT_TIE);
                         break;
                     case Keys.CHOICE_PAPER:
                         mInstructionView.setText("You lose!");
-                        resultDict.addInt32(Keys.KEY_RESULT, Keys.RESULT_WIN);  // Inform Pebble of opposite result
                         break;
                     case Keys.CHOICE_SCISSORS:
                         mWinCounter++;
                         mInstructionView.setText("You win! (" + mWinCounter + " of " + mGameCounter + ")");
-                        resultDict.addInt32(Keys.KEY_RESULT, Keys.RESULT_LOSE);
                         break;
                 }
                 break;
@@ -166,15 +133,12 @@ public class MainActivity extends Activity {
                     case Keys.CHOICE_ROCK:
                         mWinCounter++;
                         mInstructionView.setText("You win! (" + mWinCounter + " of " + mGameCounter + ")");
-                        resultDict.addInt32(Keys.KEY_RESULT, Keys.RESULT_LOSE);
                         break;
                     case Keys.CHOICE_PAPER:
                         mInstructionView.setText("It's a tie!");
-                        resultDict.addInt32(Keys.KEY_RESULT, Keys.RESULT_TIE);
                         break;
                     case Keys.CHOICE_SCISSORS:
                         mInstructionView.setText("You lose!");
-                        resultDict.addInt32(Keys.KEY_RESULT, Keys.RESULT_WIN);
                         break;
                 }
                 break;
@@ -182,23 +146,17 @@ public class MainActivity extends Activity {
                 switch(mP2Choice) {
                     case Keys.CHOICE_ROCK:
                         mInstructionView.setText("You lose!");
-                        resultDict.addInt32(Keys.KEY_RESULT, Keys.RESULT_WIN);
                         break;
                     case Keys.CHOICE_PAPER:
                         mWinCounter++;
                         mInstructionView.setText("You win! (" + mWinCounter + " of " + mGameCounter + ")");
-                        resultDict.addInt32(Keys.KEY_RESULT, Keys.RESULT_LOSE);
                         break;
                     case Keys.CHOICE_SCISSORS:
                         mInstructionView.setText("It's a tie!");
-                        resultDict.addInt32(Keys.KEY_RESULT, Keys.RESULT_TIE);
                         break;
                 }
                 break;
         }
-
-        // Inform Pebble of result
-        PebbleKit.sendDataToPebble(getApplicationContext(), APP_UUID, resultDict);
 
         // Finally reset both
         mChoice = Keys.CHOICE_WAITING;
