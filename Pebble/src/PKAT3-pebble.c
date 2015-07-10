@@ -9,10 +9,38 @@ static TextLayer *s_result_layer;
 static int s_choice = CHOICE_WAITING;
 static int s_win_counter, s_game_counter;
 
-static void timer_handler(void *context) {
-  // Allow user to choose once more
+static void ui_show_weapon_selector() {
   layer_set_hidden(menu_layer_get_layer(s_choice_menu), false);
   layer_set_hidden(text_layer_get_layer(s_result_layer), true);
+}
+
+static void ui_update_weapon(row) {
+  gbitmap_destroy(s_choice_bitmap);
+
+  switch(cell_index->row) {
+    case 0:
+      // Chose rock
+      s_choice = CHOICE_ROCK;
+      s_choice_bitmap = gbitmap_create_with_resource(RESOURCE_ID_ROCK);
+      break;
+    case 1:
+      // Chose paper
+      s_choice = CHOICE_PAPER;
+      s_choice_bitmap = gbitmap_create_with_resource(RESOURCE_ID_PAPER);
+      break;
+    case 2:
+      // Chose scissors
+      s_choice = CHOICE_SCISSORS;
+      s_choice_bitmap = gbitmap_create_with_resource(RESOURCE_ID_SCISSORS);
+      break;
+  }
+  
+  bitmap_layer_set_bitmap(s_choice_layer, s_choice_bitmap);
+}
+
+static void timer_handler(void *context) {
+  // Allow user to choose once more
+  ui_show_weapon_selector();
 
   s_choice = CHOICE_WAITING;
 }
@@ -54,32 +82,8 @@ static uint16_t get_num_rows_callback(struct MenuLayer *menu_layer, uint16_t sec
 static void select_click_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *context) {
   // Only allow choice when waiting for one
   if(s_choice == CHOICE_WAITING) {
-    switch(cell_index->row) {
-      case 0:
-        // Chose rock
-        s_choice = CHOICE_ROCK;
-
-        gbitmap_destroy(s_choice_bitmap);
-        s_choice_bitmap = gbitmap_create_with_resource(RESOURCE_ID_ROCK);
-        bitmap_layer_set_bitmap(s_choice_layer, s_choice_bitmap);
-        break;
-      case 1:
-        // Chose paper
-        s_choice = CHOICE_PAPER;
-
-        gbitmap_destroy(s_choice_bitmap);
-        s_choice_bitmap = gbitmap_create_with_resource(RESOURCE_ID_PAPER);
-        bitmap_layer_set_bitmap(s_choice_layer, s_choice_bitmap);
-        break;
-      case 2:
-        // Chose scissors
-        s_choice = CHOICE_SCISSORS;
-
-        gbitmap_destroy(s_choice_bitmap);
-        s_choice_bitmap = gbitmap_create_with_resource(RESOURCE_ID_SCISSORS);
-        bitmap_layer_set_bitmap(s_choice_layer, s_choice_bitmap);
-        break;
-    }
+    // Update UI with choice
+    ui_update_weapon(cell_index->row);
     
     // Lock in choice
     menu_layer_reload_data(s_choice_menu);
