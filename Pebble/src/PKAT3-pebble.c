@@ -9,15 +9,21 @@ static TextLayer *s_result_layer;
 static int s_choice = CHOICE_WAITING;
 static int s_win_counter, s_game_counter;
 
-static void ui_show_weapon_selector() {
-  layer_set_hidden(menu_layer_get_layer(s_choice_menu), false);
-  layer_set_hidden(text_layer_get_layer(s_result_layer), true);
+static void ui_show_weapon_selector(bool show) {
+  layer_set_hidden(menu_layer_get_layer(s_choice_menu), !show);
+  layer_set_hidden(text_layer_get_layer(s_result_layer), show);
+
+  if(show) {
+    gbitmap_destroy(s_choice_bitmap);
+    s_choice_bitmap = gbitmap_create_with_resource(RESOURCE_ID_UNKNOWN);
+    bitmap_layer_set_bitmap(s_choice_layer, s_choice_bitmap);
+  }
 }
 
-static void ui_update_weapon(row) {
+static void ui_update_weapon(int row) {
   gbitmap_destroy(s_choice_bitmap);
 
-  switch(cell_index->row) {
+  switch(row) {
     case 0:
       // Chose rock
       s_choice = CHOICE_ROCK;
@@ -40,7 +46,7 @@ static void ui_update_weapon(row) {
 
 static void timer_handler(void *context) {
   // Allow user to choose once more
-  ui_show_weapon_selector();
+  ui_show_weapon_selector(true);
 
   s_choice = CHOICE_WAITING;
 }
