@@ -104,22 +104,14 @@ static void main_window_load(Window *window) {
   GRect bitmap_bounds = gbitmap_get_bounds(s_choice_bitmap);
 
   // Initialize to 'unknown' state
-#if defined(PBL_SDK_2)
-  s_choice_layer = bitmap_layer_create(GRect(0, 0, bounds.size.w, bounds.size.h - bitmap_bounds.size.h));
-#elif defined(PBL_SDK_3)
   const GEdgeInsets choice_layer_insets = {.bottom = bounds.size.h - bitmap_bounds.size.h};
   s_choice_layer = bitmap_layer_create(grect_inset(bounds, choice_layer_insets));
-#endif
   bitmap_layer_set_bitmap(s_choice_layer, s_choice_bitmap);
   layer_add_child(window_layer, bitmap_layer_get_layer(s_choice_layer));
 
   // MenuLayer for selection - half the screen
-#if defined(PBL_SDK_2)
-  s_choice_menu = menu_layer_create(GRect(0, bitmap_bounds.size.h, bounds.size.w, bounds.size.h - bitmap_bounds.size.h));
-#elif defined(PBL_SDK_3)
   const GEdgeInsets menu_insets = {.top = bitmap_bounds.size.h};
   s_choice_menu = menu_layer_create(grect_inset(bounds, menu_insets));  
-#endif
   menu_layer_set_callbacks(s_choice_menu, NULL, (MenuLayerCallbacks) {
     .draw_row = draw_row_callback,
     .get_cell_height = get_cell_height_callback,
@@ -130,12 +122,8 @@ static void main_window_load(Window *window) {
   layer_add_child(window_layer, menu_layer_get_layer(s_choice_menu));
 
   // TextLayer to show result of matches
-#if defined(PBL_SDK_2)
-  s_result_layer = text_layer_create(GRect(0, 90, bounds.size.h, 30));
-#elif defined(PBL_SDK_3)
   const GEdgeInsets result_insets = {.top = 90};
   s_result_layer = text_layer_create(grect_inset(bounds, result_insets));
-#endif
   text_layer_set_font(s_result_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
   text_layer_set_text_alignment(s_result_layer, GTextAlignmentCenter);
   layer_add_child(window_layer, text_layer_get_layer(s_result_layer));

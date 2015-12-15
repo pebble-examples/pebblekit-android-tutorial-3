@@ -14,22 +14,22 @@
   "resources": {
     "media": [
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "ROCK",
         "file": "images/rock.png"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "PAPER",
         "file": "images/paper.png"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "SCISSORS",
         "file": "images/scissors.png"
       },
       {
-        "type": "png",
+        "type": "bitmap",
         "name": "UNKNOWN",
         "file": "images/unknown.png"
       }
